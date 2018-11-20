@@ -1,0 +1,44 @@
+You have found the mouth of a new river where it spills into the sea.  What do the locals call this river?
+Nile
+How much water is flowing into the sea?  (L/s)
+2830000
+How far did you walk until you reached the next junction? (in km)
+3000
+Are you done traveling upstream on the Nile? (y/N)
+n
+That means you must be at another confluence.  What is the name the locals have given the river flowing into this one?
+Atbarah River
+How much water is flowing from that tributary into the main river?  (L/s)
+374000
+How far did you walk until you reached the next junction? (in km)
+400
+Are you done traveling upstream on the Nile? (y/N)
+n
+That means you must be at another confluence.  What is the name the locals have given the river flowing into this one?
+White Nile
+How much water is flowing from that tributary into the main river?  (L/s)
+878000
+How far did you walk until you reached the next junction? (in km)
+700
+Are you done traveling upstream on the Nile? (y/N)
+n
+That means you must be at another confluence.  What is the name the locals have given the river flowing into this one?
+Dinder River
+How much water is flowing from that tributary into the main river?  (L/s)
+112000
+How far did you walk until you reached the next junction? (in km)
+750
+Are you done traveling upstream on the Nile? (y/N)
+y
+Great!  We're done!
+You have now explored the Nile!
+The river is at least 4850 km long.
+From the furthest distance we explored: 
+1466000 L/s flows 750 km downstream.
+Then, the Dinder River flows into the river.
+Then 1578000 L/s flows 700 km downstream.
+Then, the White Nile flows into the river.
+Then 2456000 L/s flows 400 km downstream.
+Then, the Atbarah River flows into the river.
+2830000 L/s flows 3000 km downstream.
+Then the Nile flows into the sea.
