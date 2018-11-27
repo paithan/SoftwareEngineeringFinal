@@ -81,7 +81,7 @@ public class RiverDiscoverer {
         }
         
         System.out.println("The river is at least " + totalLength + " km long.");
-        System.out.println("From the furthest distance we explored: ");
+        System.out.println("From the furthest distance we explored:");
         
         System.out.println(riverFlows.get(riverFlows.size() - 1) + " L/s flows " + lengthsBetweenConvergences.get(riverFlows.size() - 1) + " km downstream.");
         System.out.println("Then, the " + convergenceNames.get(riverFlows.size() - 1) + " flows into the river."); 

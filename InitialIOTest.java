@@ -7,7 +7,6 @@ public class InitialIOTest {
 
     public static void main(String[] args) {
         System.out.println("Testing RiverDiscoverer on the initial IO from the Final Project webpage...");
-        System.out.println("This may take a few seconds...");
         IOTester tester = new IOTester(RiverDiscoverer.class);
         tester.addOutput("You have found the mouth of a new river where it spills into the sea.  What do the locals call this river?");
         tester.addInput("Nile");

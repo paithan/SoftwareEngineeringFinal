@@ -7,8 +7,8 @@ public class FinalIOTest {
 
     public static void main(String[] args) {
         System.out.println("Testing BetterRiverDiscoverer on the IO from the Final Project webpage...");
-        System.out.println("This may take a few seconds...");
         IOTester tester = new IOTester(BetterRiverDiscoverer.class);
+        //IOTester tester = new IOTester(BackwardsIOTest.class);
         tester.addOutput("You have found the mouth of a new river where it spills into the sea.  What do the locals call this river?");
         tester.addInput("Nile");
         tester.addOutput("How much water is flowing into the sea?  (L/s)");
@@ -77,6 +77,7 @@ public class FinalIOTest {
         tester.addOutput("This flows 750 km downstream.");
         tester.addOutput("Then, tributary:");
         tester.addOutput("    Dinder River, at the furthest upstream we explored, dumps 112000 L/s");
+        tester.addOutput("    In total, we explored 0 km of the Dinder River.");
         tester.addOutput("The Nile now flows 1578000 L/s.");
         tester.addOutput("This flows 700 km downstream.");
         tester.addOutput("Then, tributary:");
@@ -84,14 +85,18 @@ public class FinalIOTest {
         tester.addOutput("    This flows 200 km downstream.");
         tester.addOutput("    Then, tributary:");
         tester.addOutput("        Sobat River, at the furthest upstream we explored, dumps 412000 L/s");
+        tester.addOutput("        In total, we explored 0 km of the Sobat River.");
         tester.addOutput("    The White Nile now flows 878000 L/s.");
         tester.addOutput("    This flows 1200 km downstream.");
+        tester.addOutput("    In total, we explored 1400 km of the White Nile.");
         tester.addOutput("The Nile now flows 2456000 L/s.");
         tester.addOutput("This flows 400 km downstream.");
         tester.addOutput("Then, tributary:");
         tester.addOutput("    Atbarah River, at the furthest upstream we explored, dumps 374000 L/s");
+        tester.addOutput("    In total, we explored 0 km of the Atbarah River.");
         tester.addOutput("The Nile now flows 2830000 L/s.");
         tester.addOutput("This flows 3000 km downstream.");
+        tester.addOutput("In total, we explored 4850 km of the Nile.");
         tester.addOutput("Then the Nile flows into the sea.");
         tester.run();
     }

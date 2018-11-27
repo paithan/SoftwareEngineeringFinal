@@ -1,10 +1,11 @@
 import java.util.*;
+import java.util.concurrent.*;
 import java.lang.reflect.*;
 import java.lang.*;
 import java.io.*;
 
 /**
- * A class to test sequences of input and output.  
+ * A class to test sequences of input and output.  Important: in order to use this tester, the class being tested can only have a single Scanner created using System.in at a time.
  *
  * @author Kyle Burke
  */
@@ -23,6 +24,15 @@ public class IOTester {
     //the class whose main method we'll call
     private final Class toTest;
     
+    //the number of correct outputs
+    private int numCorrect;
+    
+    //the number of output attempts
+    private int numOutputs;
+    
+    //the console output, hidden away during testing
+    private PrintStream oldStdOut;
+    
     /**
      * Class constructor.
      */
@@ -32,6 +42,24 @@ public class IOTester {
         this.inputBuilder = new StringBuilder();
         this.results = new StringBuilder();
         this.toTest = c;
+        this.numCorrect = 0;
+        this.numOutputs = 0;
+        this.oldStdOut = System.out;
+    }
+    
+    /**
+     * Adds a correct output.
+     */
+    public void tallyCorrectOutput() {
+        this.numCorrect ++;
+        this.numOutputs ++;
+    }
+    
+    /**
+     * Adds an incorrect output.
+     */
+    public void tallyIncorrectOutput() {
+        this.numOutputs ++;
     }
     
     /**
@@ -51,24 +79,73 @@ public class IOTester {
     }
     
     /**
+     * Writes to the user during testing.
+     */
+    public void printDuringTesting(String s) {
+        this.oldStdOut.println(s);
+        //System.err.println(s);
+    }
+    
+    /**
      * Runs the tester.
      */
     public void run() {
-        PrintStream oldStdOut = System.out;
+        this.oldStdOut = System.out;
         InputStream oldStdIn = System.in;
+        OutputStream newOut = null;
+        InputStream inFromNewOut = null;
+        BufferedReader reader;
+        
+        /*
+        System.out.println("*~~~~~~~~~*");
+        System.out.println("This is the combined string that will be sent to the IO program:\n" + this.inputBuilder.toString());
+        System.out.println("*~~~~~~~~~*");
+        /* */
+        byte[] bytes = this.inputBuilder.toString().getBytes();
+        
+        //this will prevent the streams from being closed prematurely
+        //final Semaphore semaphore = new Semaphore(1);
         try {
+        
             //set up the new standard in with the input strings all put together.
-            //StringBufferInputStream newIn = new StringBufferInputStream(this.userInput);
-            StringBufferInputStream newIn = new StringBufferInputStream(this.inputBuilder.toString());
+            //this will communicate the input from this tester to the program being tested
+            
+            InputStream newIn = new ByteArrayInputStream(bytes);
+            //newIn = new ByteArrayInputStream("Hi\nI\nAm\nNot\nSure\nWhat's\nGoing\nOn!".getBytes());
             System.setIn(newIn);
             
-            //set up a new output stream that will pipe into an input stream
-            PipedOutputStream newOut = new PipedOutputStream();
-            InputStream inFromNewOut = new PipedInputStream(newOut); //now this is connected.
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inFromNewOut));
-            System.setOut(new PrintStream(newOut, true));
             
-    
+            /*
+            //set up a new output stream that will pipe into an input stream
+            newOut = new PipedOutputStream();
+            inFromNewOut = new PipedInputStream(newOut); //now this is connected.
+            reader = new BufferedReader(new InputStreamReader(inFromNewOut));
+            System.setOut(new PrintStream(newOut, true));
+            /* */
+            
+            
+            
+            //the piping didn't work, so we're going to try using a file as the intermediary.
+            //this will hold the output from the tested program to be read by this.
+            String fileName = "TesterTempMonkeyFile.txt";
+            File tempFile = new File(fileName);
+            tempFile.createNewFile(); //create the file if it doesn't exist
+            tempFile.setReadable(true);
+            tempFile.setWritable(true);
+            //clear the contents of the file, a la Vlad's answer here: https://stackoverflow.com/questions/6994518/how-to-delete-the-content-of-text-file-without-deleting-itself
+            PrintWriter writer = new PrintWriter(tempFile);
+            writer.print("");
+            writer.close();
+            //tempFile.createNewFile();
+            //tempFile.deleteOnExit();
+            newOut = new FileOutputStream(tempFile, true);
+            System.setOut(new PrintStream(newOut, true));
+            //set the reader up to read from the file
+            reader = new BufferedReader(new FileReader(fileName));
+            /* */
+            
+            //semaphore.acquireUninterruptibly();
+            /*
             Runnable mainToTest = new Runnable() {
                 public void run() {
                     //choose and run the main method
@@ -81,28 +158,63 @@ public class IOTester {
                         }
                     } catch (Throwable t) {
                         System.err.println("Something went wrong while reflecting!  Perhaps there weren't enough inputs supplied!");
-                        results.append("Failure: Something went wrong here!");
-                        System.err.println("Results: \n" + results);
+                        results.append("Failure: Something went wrong here!  " + t.getMessage());
+                        t.printStackTrace();
+                        //System.err.println("Results: \n" + results);
                         //t.printStackTrace();
                     }
+                    semaphore.release();
                 }
             };
             new Thread(mainToTest).start();
+            /* */
+            
+            //now run the code (hopefully) writing out to the file
+            try {
+                Method[] methods = toTest.getDeclaredMethods();
+                for (Method method : methods) {
+                    if (method.getName().equals("main")) {
+                        method.invoke(toTest, new Object[] {new String[0]});
+                    }
+                }
+            } catch (Throwable t) {
+                System.err.println("Something went wrong while processing the inputs!");
+                results.append("Failure: Something went wrong here!  " + t.getMessage());
+                t.printStackTrace();
+                //System.err.println("Results: \n" + results);
+                //t.printStackTrace();
+            }
+            
             
             for (ExchangeString testString : this.exchanges) {
-                this.results.append(testString.test(reader) + "\n");
+                this.results.append(testString.test(reader, this) + "\n");
             }
             this.results.append("Test Complete! \n");
+        
+            
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Aaaaaaah!");
         }
         
+        //semaphore.acquireUninterruptibly();
+        
+        /*
+        try {
+            //close the new piped streams
+            System.err.println("CLOSING THE STREAMS NOW!");
+            newOut.close();
+            inFromNewOut.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }*/
+        
         //put the old standard in and out back
         System.setOut(oldStdOut);
         System.setIn(oldStdIn);
         
-        System.out.println("Results: \n" + this.results);
+        System.out.println("*~~~~~~~~~~~~~~~~~~~~~~~~*\n");//Results: \n" + this.results);
+        System.out.println("Total parts correct: " + this.numCorrect + "/" + this.numOutputs);
         
     }
     
@@ -163,7 +275,7 @@ public class IOTester {
     private static abstract class ExchangeString {
         
         //test method
-        public abstract String test(BufferedReader reader);
+        public abstract String test(BufferedReader reader, IOTester tester);
         
     } //end of ExchangeString
     
@@ -179,17 +291,36 @@ public class IOTester {
         }
         
         //test method
-        public String test(BufferedReader reader) {
+        public String test(BufferedReader reader, IOTester tester) {
+            String outputDuringTesting = "Program outputs: ";
+            String returnString;
+            String line = "    No output; reader.readLine() failed!";
             try {
-                String line = reader.readLine();
-                if (!line.trim().equals(this.expected.trim())) {
-                    return "Failure! Expected: \"" + this.expected + "\" but got \"" + line + "\" instead!";
-                } else {
-                    return line;
-                }
+                line = reader.readLine();
+                //line = line.trim();
             } catch (Exception e) {
-                return "Failure: Exception when I expected \"" + this.expected + "\".";
+                tester.tallyIncorrectOutput();
+                String exceptionFeedback = "Failure: Exception: " + e.getMessage() + "\n" +
+                                           "         Expected: \"" + this.expected + "\"";
+                outputDuringTesting += "EXCEPTION: " + e.getMessage() + "\n";
+                e.printStackTrace();
+                returnString = exceptionFeedback;
             }
+            outputDuringTesting += line + "  ";
+            //if (!this.expected.trim().equals(line)) {
+            if (!this.expected.equals(line)) {
+                tester.tallyIncorrectOutput();
+                outputDuringTesting += "(Incorrect)";
+                returnString = "Incorrect: Expected: \"" + this.expected + "\" \n" +
+                                "                Got: \"" + line + "\"";
+            } else {
+                tester.tallyCorrectOutput();
+                outputDuringTesting += "(Correct)";
+                returnString = "Correct: \"" + line + "\"";
+            }
+            tester.printDuringTesting(outputDuringTesting);
+            return returnString;
+            
         }
     } //end of OutputString
     
@@ -205,7 +336,7 @@ public class IOTester {
         }
         
         //test method
-        public String test(BufferedReader reader) {
+        public String test(BufferedReader reader, IOTester tester) {
             /*
             InputStream oldStdIn = System.in;
             //set up the new standard in with the input strings all put together.
@@ -214,13 +345,15 @@ public class IOTester {
             //reset to the real stdIn
             System.setIn(oldStdIn);
             */
+            tester.printDuringTesting("Sim-User types: " + this.userInput);
             try {
-                Thread.sleep(500);
+                //TODO: why do we have to sleep?
+                //Thread.sleep(300);
             } catch (Exception e) {
                 System.err.println("Thread.sleep failed in InputString.test!");
-                return test(reader);
+                return test(reader, tester);
             }
-            return this.userInput;
+            return "  Input: \"" + this.userInput + "\"";
         }
         
     
