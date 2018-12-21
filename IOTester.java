@@ -222,6 +222,7 @@ public class IOTester {
      * Main method for testing.
      */
     public static void main(String[] args) {
+        /*  This has the test for RiverDiscoverer, which you should now run InitialIOTest for instead. 
         IOTester tester = new IOTester(RiverDiscoverer.class);
         tester.addOutput("You have found the mouth of a new river where it spills into the sea.  What do the locals call this river?");
         tester.addInput("Nile");
@@ -268,6 +269,7 @@ public class IOTester {
         tester.addOutput("2830000 L/s flows 3000 km downstream.");
         tester.addOutput("Then the Nile flows into the sea.");    
         tester.run();
+        /* */
     }
     
     
